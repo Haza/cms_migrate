@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * Implements hook_flush_caches().
+ */
+function cms_migrate_flush_caches() {
+  cmd_migrate_register_migrations();
+}
+
+/**
+ * Register all D7->D7 migrations.
+ */
+function cmd_migrate_register_migrations() {
+  /**
+   * Each migration being registered takes an array of arguments, some required
+   * and some optional. Start with the common arguments required by all - the
+   * source_connection (connection key, set up in settings.php, pointing to
+   * the Drupal 7 database), source_version (major version of Drupal), and
+   * group_name (a.k.a. import job).
+   */
+  $common_arguments = array(
+    'source_connection' => 'legacy',
+    'source_version' => 7,
+    'group_name' => 'CMS_group',
+  );
+
+  // Node migrations - each has its own class derived from the migrate_d2d class,
+  // specifying its particular field mappings and transformations. source_type
+  // and destination_type are required arguments.
+  $node_arguments = array(
+    array(
+      'class_name'       => 'BannerMigration',
+      'description'      => t('Migration of Banner nodes from Drupal 7'),
+      'machine_name'     => 'Banner',
+      'source_type'      => 'banner',
+      'destination_type' => 'banner',
+    ),
+  );
+  // Tell the node migrations where the users are coming from, so they can
+  // set up the dependency and resolve D6->D7 uids.
+  $common_node_arguments = $common_arguments + array(
+//    'user_migration' => 'User',
+  );
+  foreach ($node_arguments as $arguments) {
+    $arguments = array_merge_recursive($arguments, $common_node_arguments);
+    Migration::registerMigration($arguments['class_name'], $arguments['machine_name'],
+                                 $arguments);
+  }
+
+}
+
+/**
+ * Implements hook_migrate_api().
+ */
+function cms_migrate_migrate_api() {
+  $api = array(
+    'api' => 2,
+  );
+  return $api;
+}

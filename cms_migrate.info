@@ -1,0 +1,6 @@
+name = CMS migrate
+description = Sync 2 drupal instances
+core = 7.x
+dependencies[] = migrate_d2d
+
+files[] = node.inc
